@@ -1,182 +1,204 @@
 #include <iostream>
+#include <assert.h>
 
 #pragma warning (disable : 4996)
 
-char** addPtr(char** pp, int size, char* str);
-char** delPtr(char** pp, int size, int ncell);
-char** insPtr(char** pp, int size, int ncell, char* str);
+void printLines(char** pPtr, int size);
+char** AddPtr(char** pPtr, int size, char *str);			// add a string at the end of the pointers array (pPtr)
+char** InsPtr(char** pPtr, int* size, int ncell, char* str);	// add a string at the particular position (ncell) of the pointers array (pPtr)
+char** DelPtr(char** pPtr, int size, int ncell);			// delete a pointer to char and a string from the particular position (ncell) of the pointers array (pPtr)
 
-int main(int argc, char* argv[])
+
+int main(int argc, char *argv[])
 {
-	char** pp = nullptr;
+	char **pPtr = nullptr;
 	int size = 0;
 
-	std::cout << "~~~~ Add pointers to char into pointers array and fill in the lines ~~~~" << std::endl;
-
-	pp = addPtr(pp, size, "1111111");
+	pPtr = AddPtr(pPtr, size, "first line");
 	size++;
 
-	pp = addPtr(pp, size, "2222222");
+	pPtr = AddPtr(pPtr, size, "second line");
 	size++;
 
-	pp = addPtr(pp, size, "3333333");
+	pPtr = AddPtr(pPtr, size, "third line");
 	size++;
 
-	pp = addPtr(pp, size, "4444444");
+	pPtr = AddPtr(pPtr, size, "fourth line");
 	size++;
 
-	pp = addPtr(pp, size, "5555555");
+	pPtr = AddPtr(pPtr, size, "fifth line");
 	size++;
 
-	for (int i = 0; i < size; i++)
-	{
-		std::cout << pp[i] << '\n';
-	}
-	std::cout << std::endl;
+	std::cout << " ~~~~ after 5 calls of AddPtr() function: ~~~~\n";
+	printLines(pPtr, size);
 
 
-	std::cout << "~~~~ Deletion of the pointer to 3-rd line from pointer array and clean up this line ~~~~" << std::endl;
 
-	pp = delPtr(pp, size, 2);
+	std::cout << " ~~~~ call DelPtr() function and delete third line ~~~~\n";
+	pPtr = DelPtr(pPtr, size, 2);
 	size--;
 
-	for (int i = 0; i < size; i++)
-	{
-		std::cout << pp[i] << '\n';
-	}
-	std::cout << std::endl;
+	printLines(pPtr, size);
 
-
-	std::cout << "~~~~ Insertion of the pointer to line after 2-nd line into pointers array and fill in this line ~~~~" << std::endl;
 	
-	pp = insPtr(pp, size, 2, "333");
-	size++;
 
+	int pos = 10;
+	std::cout << " ~~~~ call InsPtr() function and insert a line into the " << pos << " position ~~~~\n";
+	pPtr = InsPtr(pPtr, &size, pos, "-CUSTOM POSITION-");
+
+	printLines(pPtr, size);
+
+	// release the memory
 	for (int i = 0; i < size; i++)
 	{
-		std::cout << pp[i] << '\n';
+		delete[] pPtr[i];		// release the string (char*)
 	}
-	std::cout << std::endl;
+
+	delete[] pPtr;	// release the pointers array
 
 	return 0;
 }
 
-
-char** addPtr(char** pp, int size, char* str)
+char** AddPtr(char** pPtr, int size, char* str)
 {
-	if (pp == nullptr)
+	if (pPtr == nullptr)
 	{
-		pp = new(std::nothrow) char *[size + 1];
-		if (!pp)
-		{
-			std::cout << "Error! Can't allocate memory" << std::endl;
-			std::exit(EXIT_FAILURE);
-		}
+		pPtr = new char*[size + 1];
+		assert(pPtr);
 	}
 	else
 	{
-		char** copy = new(std::nothrow) char *[size + 1];
-		if (!copy)
-		{
-			std::cout << "Error! Can't allocate memory" << std::endl;
-			std::exit(EXIT_FAILURE);
-		}
+		char** copy = new char*[size + 1];
+		assert(copy);
 
 		for (int i = 0; i < size; i++)
 		{
-			copy[i] = pp[i];
+			copy[i] = pPtr[i];
 		}
 
-		delete[] pp;
-		pp = copy;
+		delete[] pPtr;
+		pPtr = copy;
 	}
 
-	pp[size] = new(std::nothrow) char[strlen(str) + 1];
-	if (!pp[size])
-	{
-		std::cout << "Error! Can't allocate memory" << std::endl;
-		std::exit(EXIT_FAILURE);
-	}
+	pPtr[size] = new char[strlen(str) + 1];
+	strcpy(pPtr[size], str);
 
-	strcpy(pp[size], str);
-
-	return pp;
+	return pPtr;
 }
 
-
-char** delPtr(char** pp, int size, int ncell)
+char** DelPtr(char** pPtr, int size, int ncell)
 {
-	if (size > 1 && pp != nullptr)				// there is more than one cell in the array
+	if (pPtr == nullptr)	// no lines
 	{
-		char** copy = new(std::nothrow) char *[size - 1];
+		std::cout << "There are no lines already" << std::endl;
+
+		return nullptr;
+	}
+	else if (size == 1)		// only one line
+	{
+		delete[] pPtr[0];	// release the string
+		delete[] pPtr;		// release the pointers array
+		pPtr = nullptr;
+
+		return nullptr;
+	}
+	else					// more than one line
+	{
+		char** copy = new char*[size - 1];
+		assert(copy);
 
 		for (int i = 0; i < ncell; i++)
 		{
-			copy[i] = pp[i];
+			copy[i] = pPtr[i];
 		}
 
 		for (int i = ncell; i < size - 1; i++)
 		{
-			copy[i] = pp[i + 1];
+			copy[i] = pPtr[i + 1];
 		}
 
-		delete[] pp[ncell];
-		delete[] pp;
-		pp = copy;
-	}
-	else if (size == 1 && pp != nullptr)		// there is only one cell in the array
-	{
-		delete[] pp[0];
-		delete[] pp;
-		pp = nullptr;
-	}
-	else if (pp == nullptr)	// there is already no cell in the array
-	{
-		std::cout << "Warning! This array is already empty " << '\n' << '(' << __FILE__ << " at the function: " <<  __FUNCTION__ << ':' << __LINE__ << ')'<< std::endl;
+		delete pPtr[ncell];		// release the string
+		delete pPtr;			// release the pointers array
+		pPtr = copy;
 	}
 
-	return pp;
+	return pPtr;
+}
+
+char** InsPtr(char** pPtr, int* size, int ncell, char* str)
+{
+	if (ncell > 0)
+	{
+		if (pPtr == nullptr)	// there are no lines yet
+		{
+
+			pPtr = new char*[ncell + 1];
+			assert(pPtr);
+
+			int emptyLineSize = strlen("empty line");
+
+			for (int i = 0; i < ncell; i++)
+			{
+
+				pPtr[i] = new char[emptyLineSize + 1];
+				assert(pPtr[i]);
+				strcpy(pPtr[i], "empty line");
+			}
+
+			pPtr[ncell] = new char[strlen(str) + 1];
+			assert(pPtr[ncell]);
+			strcpy(pPtr[ncell], str);
+		}
+		else if ((*size) < ncell)	// size of the pointers array < ncell
+		{
+			for ( ; (*size) < ncell; (*size)++)
+			{
+				pPtr = AddPtr(pPtr, *size, "empty line");
+			}
+
+			pPtr[ncell] = new char[strlen(str) + 1];
+			assert(pPtr[ncell]);
+			strcpy(pPtr[ncell], str);
+		}
+		else		// size of the pointers array > ncell
+		{
+			char** copy = new char*[(*size) + 1];
+			assert(copy);
+
+			// from 0 to ncell
+			for (int i = 0; i < ncell; i++)
+			{
+				copy[i] = pPtr[i];
+			}
+
+			// skip ncell line
+
+			// from ncell + 1 to size
+			for (int i = ncell + 1; i < (*size) + 1; i++)
+			{
+				copy[i] = pPtr[i + 1];
+			}
+
+			// here we put the string at the ncell position
+			copy[ncell] = new char[strlen(str) + 1];
+			assert(copy[ncell]);
+			strcpy(copy[ncell], str);
+
+			delete[] pPtr;
+			pPtr = copy;
+		}
+	}
+
+	return pPtr;
+	
 }
 
 
-char** insPtr(char** pp, int size, int ncell, char* str)
+void printLines(char **pPtr, int size)
 {
-	if (size > ncell)		// the number of cells (size of the array) is more that ncell
+	for (int i = 0; i < size; i++)
 	{
-		char** copy = new(std::nothrow) char *[size + 1];
-		if (!copy)
-		{
-			std::cout << "Error! Can't allocate memory" << std::endl;
-			std::exit(EXIT_FAILURE);
-		}
-
-
-		for (int i = 0; i < ncell; i++)
-		{
-			copy[i] = pp[i];
-		}
-
-		copy[ncell] = new(std::nothrow) char[strlen(str) + 1];
-		if (!copy[ncell])
-		{
-			std::cout << "Error! Can't allocate memory" << std::endl;
-			std::exit(EXIT_FAILURE);
-		}
-		strcpy(copy[ncell], str);
-
-		for (int i = ncell + 1; i < size + 1; i++)
-		{
-			copy[i] = pp[i - 1];
-		}
-
-		delete[] pp;
-		pp = copy;
+		std::cout << pPtr[i] << '\n';
 	}
-	else // the number of cells is equal or less that ncell then we'll put a new line at the end of the array
-	{
-		std::cout << "Warning! The number of cells is less than ncell, we'll put a new line at the end of the array" << std::endl;
-		pp = addPtr(pp, size, str);
-	}
-
-	return pp;
+	std::cout << std::endl;
 }
