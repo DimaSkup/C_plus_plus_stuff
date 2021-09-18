@@ -33,13 +33,13 @@ int main(int argc, char *argv[])
 	printLines(pPtr, size);
 
 
-
+	/*
 	std::cout << " ~~~~ call DelPtr() function and delete third line ~~~~\n";
 	pPtr = DelPtr(pPtr, size, 2);
 	size--;
 
 	printLines(pPtr, size);
-
+	*/
 	
 
 	int pos = 10;
@@ -127,19 +127,20 @@ char** DelPtr(char** pPtr, int size, int ncell)
 
 char** InsPtr(char** pPtr, int* size, int ncell, char* str)
 {
+
 	if (ncell > 0)
 	{
 		if (pPtr == nullptr)	// there are no lines yet
 		{
-
-			pPtr = new char*[ncell + 1];
-			assert(pPtr);
-
 			int emptyLineSize = strlen("empty line");
 
+			// create pointers array with size ncell
+			pPtr = new char*[ncell];
+			assert(pPtr);
+
+			// filling in of the gaps between 0 cell and ncell cell
 			for (int i = 0; i < ncell; i++)
 			{
-
 				pPtr[i] = new char[emptyLineSize + 1];
 				assert(pPtr[i]);
 				strcpy(pPtr[i], "empty line");
@@ -151,14 +152,33 @@ char** InsPtr(char** pPtr, int* size, int ncell, char* str)
 		}
 		else if ((*size) < ncell)	// size of the pointers array < ncell
 		{
-			for ( ; (*size) < ncell; (*size)++)
+			int emptyLineSize = strlen("empty line");
+			char** copy = new(std::nothrow) char*[ncell];
+			assert(copy);
+
+			for (int i = 0; i < (*size); i++)
 			{
-				pPtr = AddPtr(pPtr, *size, "empty line");
+				copy[i] = pPtr[i];
 			}
 
-			pPtr[ncell] = new char[strlen(str) + 1];
-			assert(pPtr[ncell]);
-			strcpy(pPtr[ncell], str);
+			delete[] pPtr;
+			pPtr = copy;
+
+			for (int i = (*size); i < ncell - 1; i++)
+			{
+				pPtr[i] = new(std::nothrow) char[emptyLineSize + 1];
+				assert(pPtr[i]);
+				strcpy(pPtr[i], "empty line");
+			}
+
+			
+
+			pPtr[ncell - 1] = new char[strlen(str) + 1];
+			assert(pPtr[ncell - 1]);
+			strcpy(pPtr[ncell - 1], str);
+		
+		
+			(*size) = ncell;
 		}
 		else		// size of the pointers array > ncell
 		{
